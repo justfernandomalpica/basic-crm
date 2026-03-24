@@ -1,0 +1,23 @@
+{
+  "name": "malpica/mpk-tek-crm",
+  "description": "Customer Relationship Management web application. Simple, Scalable, Forever.",
+  "type": "project",
+  "authors": [
+    {
+      "name": "Fernando De Los Santos Malpica",
+      "email": "fernando_santosmalpica@outlook.com"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Core\\": "./core/",
+      "Controllers\\": "./controllers/",
+      "Models\\": "./models/",
+      "Middleware\\": "./middleware/",
+      "Domain\\": "./domain/"
+    }
+  },
+  "require": {
+    "vlucas/phpdotenv": "^5.6"
+  }
+}
