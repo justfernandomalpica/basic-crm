@@ -3,25 +3,22 @@
 namespace Core\Rendering;
 
 class RenderEngine {
-    private static string $layoutPath = '';
-    private static string $viewPath = '';
+    private string $layoutPath = '';
+    private string $viewPath = '';
+
+    public function __construct(string $layoutPath, string $viewPath) {
+        $this->layoutPath = $this->resolveFolder($layoutPath);
+        $this->viewPath = $this->resolveFolder($viewPath);
+    }
 
     public static function render(string $layout, View $view) {
-        // Comprobar si los paths fueron setteados;
-        if(self::$viewPath === "") throw new \Exception("View path must be declared before rendering");
-        if(self::$layoutPath === "") throw new \Exception("Layout path must be declared before rendering");
-
         // Comprobar si la vista y layout a renderizar existen en el path
         $vPath = self::buildViewDir($view);
         $lPath = self::buildLayoutDir($layout);
 
         // Convertir elementos de data a variables individuales
         $data = $view->getData();
-        if($data !== []){
-            foreach ($data as $key => $value) {
-                $$key = $value;
-            }
-        }
+        if($data !== []) extract($data, EXTR_PREFIX_ALL, "view_");
 
         // Guardar en memoria la vista
         ob_start();
@@ -32,28 +29,24 @@ class RenderEngine {
         include $lPath;
     }
 
-    public static function setLayoutsFolder(string $path) : void {
+    private function resolveFolder(string $path) : string {
         $path = trim($path);
-        if($path === "") throw new \Exception("Layout path cannot be empty");
-        $path = __DIR__ . "/../../" . $path;
-        self::$layoutPath = $path;
-    }
-
-    public static function setViewsFolder(string $path) : void {
-        $path = trim($path);
-        if($path === "") throw new \Exception("Layout path cannot be empty");
-        $path = __DIR__ . "/../../" . $path;
-        self::$viewPath = $path;
+        if($path === "") throw new \Exception("Error on setting RenderEngine folder: Path cannot be empty");
+        if(str_starts_with($path, DIRECTORY_SEPARATOR)) throw new \Exception("Error on setting RenderEngine folder: Path does not must start with ' ". DIRECTORY_SEPARATOR . " '.");
+        if(str_ends_with($path,DIRECTORY_SEPARATOR)) throw new \Exception("Error on setting RenderEngine folder: Path does not must end with ' ". DIRECTORY_SEPARATOR . " '.");
+        $path = realpath(PROJECT_ROOT . DIRECTORY_SEPARATOR . $path);
+        if($path === false) throw new \Exception("Error on setting RenderEngine folder: No folder resolved with setted path [{$path}]");
+        return $path;
     }
 
     private static function buildViewDir(View $view) : string {
-        $dir = self::$viewPath . "/" . $view->getPath() . ".php";
+        $dir = self::$viewPath . DIRECTORY_SEPARATOR . $view->getPath() . ".php";
         if(!is_file($dir)) throw new \Exception("View don't exist in current views folder");
         return $dir;
     }
 
     private static function buildLayoutDir(string $layout) : string {
-        $dir = self::$layoutPath . "/" . $layout . ".php";
+        $dir = self::$layoutPath . DIRECTORY_SEPARATOR . $layout . ".php";
         if(!is_file($dir)) throw new \Exception("Layout don't exist in current layouts folder");
         return $dir;
     }

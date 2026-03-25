@@ -1,12 +1,13 @@
 <?php
+define("PROJECT_ROOT", dirname(__DIR__, 1));
 
-require __DIR__ . "/../vendor/autoload.php";
+require PROJECT_ROOT . "/vendor/autoload.php";
 
 use Dotenv\Dotenv;
 $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->safeLoad();
 
-require __DIR__ . "/../helpers/functions.php";
+require PROJECT_ROOT . "/helpers/functions.php";
 require __DIR__ . "/database.php";
 
 use Core\ActiveRecord;
@@ -16,5 +17,4 @@ use Core\Routing\Router;
 $router = new Router();
 
 use Core\Rendering\RenderEngine;
-RenderEngine::setLayoutsFolder("views/layout");
-RenderEngine::setViewsFolder("views");
+$rEngine = new RenderEngine("views/layout", "views");

@@ -17,16 +17,13 @@ class Router {
 
     public function dispatch() : void {                
         [$route, $params] = $this->resolve($_SERVER["REQUEST_METHOD"],$_SERVER["REQUEST_URI"]);
-        if ($route === null) call_user_func([NotFoundController::class, "index"]); // * Aqui irá el controlador del 404 y termina la ejecución.
+        if ($route === null) call_user_func([NotFoundController::class, "index"]);
         $this->execute($route,$params);
         return;
     }
 
     // *Private Methods
-    private function resolve(string $method, string $uri) : array {
-        $route = null;
-        $params = [];
-        
+    private function resolve(string $method, string $uri) : array {        
         foreach($this->routes as $current) {
             if($current->matches($method, $uri)) {
                 $route = $current;
@@ -35,7 +32,7 @@ class Router {
                 return [$route, $params];
             }
         }
-        return [$route, $params];
+        return [null, []];
     }
 
     private function execute(Route $route, array $params) : void {
@@ -49,7 +46,8 @@ class Router {
 
     private function addRoute(string $method, string $path, callable|array $handler) : Route {
         $path = $this->normalizePath($path);
-        $route = new Route([$method], $path, $handler);
+        $method = is_array($method) ? $method : [$method];
+        $route = new Route($method, $path, $handler);
         $this->routes[] = $route;
         return $route;
     }
