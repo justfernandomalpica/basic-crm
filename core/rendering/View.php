@@ -30,12 +30,13 @@ class View {
 
     private function validatePath(string $path) {
         $baseErrorMsg = "Error on setting View Path: ";
+        $pattern = "/\.\.\\" . DIRECTORY_SEPARATOR . "/";
         $path = trim($path);
         if($path === "") throw new \Exception($baseErrorMsg."Path cannot be empty");
-        if(preg_match("/\.\.\//",$path) === 1) throw new \Exception($baseErrorMsg."Path cannot contain '../' expression");
+        if(preg_match($pattern,$path) === 1) throw new \Exception($baseErrorMsg."Path cannot contain '..".DIRECTORY_SEPARATOR."' expression");
         if(str_starts_with($path, DIRECTORY_SEPARATOR)) throw new \Exception($baseErrorMsg."Path does not must start with ' ". DIRECTORY_SEPARATOR . " '.");
         if(str_ends_with($path,DIRECTORY_SEPARATOR)) throw new \Exception($baseErrorMsg."Path does not must end with ' ". DIRECTORY_SEPARATOR . " '.");
-        if(str_ends_with($path,".php")) trim($path, ".php");
+        if(str_ends_with($path,".php")) { $path = trim($path, ".php"); }
         return $path;
     }
 

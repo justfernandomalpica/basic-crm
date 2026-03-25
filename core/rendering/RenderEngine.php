@@ -11,10 +11,10 @@ class RenderEngine {
         $this->viewPath = $this->resolveFolder($viewPath);
     }
 
-    public static function render(string $layout, View $view) {
+    public function render(string $layout, View $view) {
         // Comprobar si la vista y layout a renderizar existen en el path
-        $vPath = self::buildViewDir($view);
-        $lPath = self::buildLayoutDir($layout);
+        $vPath = $this->buildViewDir($view);
+        $lPath = $this->buildLayoutDir($layout);
 
         // Convertir elementos de data a variables individuales
         $data = $view->getData();
@@ -39,14 +39,14 @@ class RenderEngine {
         return $path;
     }
 
-    private static function buildViewDir(View $view) : string {
-        $dir = self::$viewPath . DIRECTORY_SEPARATOR . $view->getPath() . ".php";
+    private function buildViewDir(View $view) : string {
+        $dir = $this->viewPath . DIRECTORY_SEPARATOR . $view->getPath() . ".php";
         if(!is_file($dir)) throw new \Exception("View don't exist in current views folder");
         return $dir;
     }
 
-    private static function buildLayoutDir(string $layout) : string {
-        $dir = self::$layoutPath . DIRECTORY_SEPARATOR . $layout . ".php";
+    private function buildLayoutDir(string $layout) : string {
+        $dir = $this->layoutPath . DIRECTORY_SEPARATOR . $layout . ".php";
         if(!is_file($dir)) throw new \Exception("Layout don't exist in current layouts folder");
         return $dir;
     }

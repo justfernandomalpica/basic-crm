@@ -18,7 +18,7 @@ class Router {
     public function dispatch() : void {                
         [$route, $params] = $this->resolve($_SERVER["REQUEST_METHOD"],$_SERVER["REQUEST_URI"]);
         if ($route === null) call_user_func([NotFoundController::class, "index"]);
-        $this->execute($route,$params);
+        else $this->execute($route,$params);
         return;
     }
 
