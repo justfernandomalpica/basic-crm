@@ -11,3 +11,6 @@ require __DIR__ . "/database.php";
 
 use Core\ActiveRecord;
 ActiveRecord::setDB($db);
+
+use Core\Routing\Router;
+$router = new Router();

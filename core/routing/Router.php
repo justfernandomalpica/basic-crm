@@ -1,22 +1,55 @@
-<?php
+<?php declare(strict_types=1);
 
-namespace MVC;
+namespace Core\Routing;
 
 class Router {
+    // *Private atributes
     private array $routes = [];
 
-    public function get(string $path, callable|array $handler) { $this->addRoute('GET', $path, $handler); }
-    public function post(string $path, callable|array $handler) { $this->addRoute('POST', $path, $handler); }
-    public function put(string $path, callable|array $handler) { $this->addRoute('PUT', $path, $handler); }
-    public function pathc(string $path, callable|array $handler) { $this->addRoute('PATCH', $path, $handler); }
-    public function delete(string $path, callable|array $handler) { $this->addRoute('DELETE', $path, $handler); }
+    // * Public methods
+    public function get(string $path, callable|array $handler) : Route { return $this->addRoute('GET', $path, $handler); }
+    public function put(string $path, callable|array $handler) : Route { return $this->addRoute('PUT', $path, $handler); }
+    public function post(string $path, callable|array $handler) : Route { return $this->addRoute('POST', $path, $handler); }
+    public function pathc(string $path, callable|array $handler) : Route { return $this->addRoute('PATCH', $path, $handler); }
+    public function delete(string $path, callable|array $handler) : Route { return $this->addRoute('DELETE', $path, $handler); }
 
-    private function addRoute(string $method, string $path, callable|array $handler) : void {
+    public function dispatch() : void {                
+        [$route, $params] = $this->resolve($_SERVER["REQUEST_METHOD"],$_SERVER["REQUEST_URI"]);
+        if ($route === null) debug("Error 404. Ruta no encontrada"); // * Aqui irá el controlador del 404 y termina la ejecución.
+        $this->execute($route,$params);
+        return;
+    }
+
+    // *Private Methods
+    private function resolve(string $method, string $uri) : array {
+        $route = null;
+        $params = [];
+        
+        foreach($this->routes as $current) {
+            if($current->matches($method, $uri)) {
+                $route = $current;
+                $params = $current->extractParameters($uri);
+                
+                return [$route, $params];
+            }
+        }
+        return [$route, $params];
+    }
+
+    private function execute(Route $route, array $params) : void {
+        if(!empty($route->middlewares())) {
+            foreach($route->middlewares() as $middleware){
+                call_user_func($middleware, $params);
+            }
+        }
+        call_user_func($route->handler(), $params);
+    }
+
+    private function addRoute(string $method, string $path, callable|array $handler) : Route {
         $path = $this->normalizePath($path);
-        $this->routes[$method][] = [
-            'path' => $path,
-            'handler' => $handler
-        ];
+        $route = new Route([$method], $path, $handler);
+        $this->routes[] = $route;
+        return $route;
     }
     private function normalizePath(string $path): string {
         if ($path !== '/') $path = rtrim($path, '/');

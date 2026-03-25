@@ -1,4 +1,9 @@
 <?php
+
+use Controllers\IndexController;
+
 require __DIR__ . "/../config/app.php";
 
-var_dump("Hola Mundo");
+$router->get("/", [IndexController::class,"index"])->name("index");
+
+$router->dispatch();

@@ -7,10 +7,9 @@ use InvalidArgumentException;
 final class Route {
     private array $methods;
     private string $path;
-
     private $handler;
-    private array $middlewares = [];
 
+    private array $middlewares = [];
     private ?string $name = null;
     private array $constraints = [];
     private ?string $compiledRegex = null;
@@ -88,12 +87,12 @@ final class Route {
     }
 
     public function matchesPath(string $uri) : bool {
-        $regex = $this->compile($uri);
+        $regex = $this->compile();
         $normalizedUri = $this->normalizeUri($uri);
         $result = preg_match($regex, $normalizedUri);
-        if($result !== false) throw new \RuntimeException("Failed to evaluate route with regex for path [{$this->path}]");
+        if($result === false) throw new \RuntimeException("Failed to evaluate route with regex for path <{$this->path}>");
 
-        return $result === true;
+        return $result === 1;
     }
 
     public function extractParameters(string $uri): array {
@@ -139,7 +138,7 @@ final class Route {
     // * Private methods
 
     private function compile() : string {
-        if($this->compiledRegex !== '') return $this->compiledRegex;
+        if($this->compiledRegex !== null) return $this->compiledRegex;
         $this->parameterNames = [];
         
         $pattern = preg_replace_callback(
@@ -168,7 +167,7 @@ final class Route {
             $method = strtoupper($method);
 
             if($method === '') continue;
-            if(!in_array($method,['GET','POST','PUT', 'PATCH', 'DELETE'])) throw new \InvalidArgumentException("Unsupported HTTP method");
+            if(!in_array($method,['GET','POST','PUT', 'PATCH', 'DELETE'])) throw new \InvalidArgumentException("'{$method}' is an unsupported HTTP method in this context.");
             if(in_array($method,$normalized,true)) continue;
 
             $normalized[] = $method;
