@@ -18,8 +18,7 @@ class RenderEngine {
 
         // Convertir elementos de data a variables individuales
         $data = $view->getData();
-        if($data !== []) extract($data, EXTR_PREFIX_ALL, "view_");
-
+        if($data !== []) extract($data, EXTR_PREFIX_ALL, "view");
         // Guardar en memoria la vista
         ob_start();
         include $vPath;

@@ -14,7 +14,7 @@ class IndexController {
 
     public function index() : self {
         $view = new View("public/mainpage");
-        $view->data(["title"=>"Title", "content"=>"2","Dato"=>"Algun dato cualquiera"]);
+        $view->data(["title"=>"Pagina principal", "content"=>"2","Dato"=>"Algun dato cualquiera"]);
         $this->rEngine->render("master", $view);
         return $this;
     }
