@@ -1,34 +1,37 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Core;
 
-/**
- * @property int|null $id
- */
 class ActiveRecord {
     
-    private static \mysqli $db;
-    private static $table = '';
-    private static $columns = [];
+    private static ?\mysqli $db = null;
+    protected static string $table = '';
+    protected static array $columns = [];
+    protected ?int $id = null;
 
-    public static function setDB($database) { self::$db = $database; }
+    // Entablish database instance
+    public static function setDB(\mysqli $database) : void { self::$db = $database; }
 
     // Save 
     public function save() : static | bool{
-        if(!isset($this->id)) return $this->create();
+        if(is_null($this->id)) return $this->create();
         else return $this->update();
     }
 
     // Create
-    public function create() : static | bool {
+    private function create() : static | bool {
+        self::initialValidation();
         $table = static::$table;
-        $attrs = $this->getAtributes();
-        $columns = implode(", ", array_keys($attrs));
-        $values = implode("', '", array_values($attrs));
+        $attrs = $this->getAttributes();
+        if(empty($attrs)) return false;
 
-        $query = "INSERT INTO $table ($columns) VALUES ('$values')";
-        $result = self::$db->query($query);
-        
+        $columns = implode(", ", array_keys($attrs));
+        $params = array_values($attrs);
+
+        $values = self::buildPlaceholdersChain($params);
+        $query = "INSERT INTO $table ($columns) VALUES ($values)";
+        $result = self::$db->execute_query($query, $params);
+
         if(!$result) return false;
         $this->id = self::$db->insert_id;
 
@@ -37,98 +40,107 @@ class ActiveRecord {
     
     // Read
     public static function all() : array {
+        self::initialValidation();
         $table = static::$table;
         $query = "SELECT * FROM $table";
-        $result = self::querySQL($query);
+
+        return self::fetchAll($query);
+    }
+
+    public static function find(int $id) : ?static {
+        self::initialValidation();
+        if($id <= 0) return null;
+        $table = static::$table;
+        $query = "SELECT * FROM $table WHERE id = ? LIMIT 1";
+
+        return self::fetch($query, [$id]);
+    }
+
+    public static function get(int $lim) : array {
+        self::initialValidation();
+        $table = static::$table;
+        if($lim <= 0) return [];
+        $query = "SELECT * FROM $table LIMIT ?";
+        $result = self::fetchAll($query,[$lim]);
 
         return $result;
     }
 
-    public static function find(int $id) : static | null {
-        $id = filter_var((int) $id, FILTER_VALIDATE_INT);
+    public static function where(string $column, mixed $value) : array {
+        self::initialValidation();
         $table = static::$table;
-        $query = "SELECT * FROM $table WHERE id = $id LIMIT 1";
-        $result = self::querySQL($query);
-
-        return empty($result) ? null : $result;
-    }
-
-    public static function get(int $lim) : array | static {
-        $table = static::$table;
-        $lim = filter_var((int) $lim, FILTER_VALIDATE_INT);
-        $lim = ($lim > 0) ? $lim : 0;
-        $query = "SELECT * FROM $table LIMIT $lim";
-        $result = self::querySQL($query);
+        if (!in_array($column, static::$columns,true)) return [];
+        $query = "SELECT * FROM $table WHERE $column = ?";
+        $result = self::fetchAll($query, [$value]);
 
         return $result;
     }
 
-    public static function where(string $column, mixed $value) : null | static {
+    public static function findBy(string $column, mixed $value) : ?static {
+        self::initialValidation();
         $table = static::$table;
-        $value = self::$db->escape_string($value);
-        if (!in_array($column, static::$columns)) return null;
-        $query = "SELECT * FROM $table WHERE $column = '$value'";
-        $result = self::querySQL($query);
+        if (!in_array($column, static::$columns,true)) return null;
+        $query = "SELECT * FROM $table WHERE $column = ? LIMIT 1";
 
-        return $result instanceof static ? $result : null;
-    }
-
-    public static function findBy(string $column, mixed $value) : null | static {
-        $table = static::$table;
-        $value = self::$db->escape_string($value);
-        if (!in_array($column, static::$columns)) return null;
-        $query = "SELECT * FROM $table WHERE $column = '$value' LIMIT 1";
-        $result = self::querySQL($query);
-
-        return $result instanceof static ? $result : null;
+        return self::fetch($query, [$value]);
     }
 
     public static function count() : int {
+        self::initialValidation();
         $table = static::$table;
         $query = "SELECT COUNT(*) as total FROM $table";
-        $result = self::$db->query($query);
+        $result = self::$db->execute_query($query);
+        if($result === false) return 0;
 
-        return $result->fetch_assoc()['total'];
+        return (int) $result->fetch_assoc()['total'];
     }
     // Update
-    public function sync($data) : static {
+    public function sync(array $data) : static {
+        self::initialValidation();
         foreach ($data as $key => $val) {
             if(!in_array($key, static::$columns)) continue;
-            $this->$key = self::$db->escape_string($val);
+            if($key==='id') continue;
+            $this->$key = $val;
         }
 
         return $this;
     }
 
     public function update() : static | bool {
-        $table = static::$table;
-        $id = filter_var((int) $this->id, FILTER_VALIDATE_INT);
+        self::initialValidation();
 
-        $values = [];
-        foreach ($this->getAtributes() as $key => $val) {
-            $values[] = "$key = '$val'";
-        }
-        $values = implode(", ", $values);
+        $table = static::$table;
+        $id = $this->id;
+        $attrs = $this->getAttributes();
+        if(is_null($id) || empty($attrs)) return false;
         
-        $query = "UPDATE $table SET $values WHERE id = '$id' LIMIT 1";
-        $result = self::$db->query($query);
+        $columns = array_keys($attrs);
+        $params = array_values($attrs);
 
-        return $result ? $this : $result;
-    }   
-    // Delete
-    public function delete() : static | bool {
-        $table = static::$table;
-        $id = filter_var((int) $this->id, FILTER_VALIDATE_INT);
-        $query = "DELETE FROM $table WHERE id = '$id' LIMIT 1";
-        $result = self::$db->query($query);
+        $values = self::buildPlaceholderPairsChain($columns);
+        $query = "UPDATE $table SET $values WHERE id = ? LIMIT 1";
+        $params[] = $id; // Esto aqui asegura que id siempre sea el ultimo parámetro antes de ejecutar el query
+        $result = self::$db->execute_query($query, $params);
 
-        if(!$result) return false;
-        unset($this->id);
-
-        return $this;
+        return $result ? $this : false;
     }
 
-    private function getAtributes() : array {
+    // Delete
+    public function delete() : bool {
+        self::initialValidation();
+        $table = static::$table;
+        $id = $this->id;
+        if(is_null($id)) return false;
+
+        $query = "DELETE FROM $table WHERE id = ? LIMIT 1";
+        $result = self::$db->execute_query($query, [$id]);
+        if ($result === false) return false;
+
+        $this->id = null;
+        return $result;
+    }
+
+    private function getAttributes() : array {
         $attrs = [];
         foreach(static::$columns as $column) {
             if(!property_exists($this, $column)) continue;
@@ -139,24 +151,60 @@ class ActiveRecord {
         return $attrs;
     }
 
+    private static function buildPlaceholdersChain(array $attrs) : string {
+        $array = array_fill(0,count($attrs),'?');
+        $chain = implode(", ", $array);
+        return $chain;
+    }
+
+    private static function buildPlaceholderPairsChain(array $columns) : string {
+        $array = [];
+        foreach($columns as $column) {
+            $array[] = $column . " = ?";
+        }
+        $chain = implode(", ", $array);
+        return $chain;
+    }
+
     private static function objectify(array $array) : static {
         $object = new static;
         foreach ($array as $key => $val) {
-            $object->$key = self::$db->escape_string($val);
+            if(!property_exists($object,$key)) continue;
+            if($key === "id") $val = (int) $val;
+            $object->$key = $val;
         }
 
         return $object;
     }
 
-    private static function querySQL(string $query) : array | static{
+    private static function fetch(string $query, array $params = []) : ?static {
+        $result = self::$db->execute_query($query, $params);
+        if($result === false) return null;
+        if($result->num_rows === 0) return null;
+        $result = self::objectify($result->fetch_assoc());
+
+        return $result;
+    }
+
+    private static function fetchAll(string $query, array $params = []) : array {
         $results = [];
-        $result = self::$db->query($query);
-        if (!$result) return [];
+        $result = self::$db->execute_query($query, $params);
+        if($result === false) return [];
         while ($res = $result->fetch_assoc()) {
             $results[] = self::objectify($res);
         }
 
-        if(empty($results)) return [];
-        return (count($results) > 1) ? $results : $results[0];
+        return $results;
+    }
+
+    private static function initialValidation() : void {
+        $baseErrorMsg = "Active Record error: ";
+        if(is_null(self::$db)) throw new \Exception($baseErrorMsg."An instance of \\mysqli must be setted before any operation");
+        if(trim(static::$table) === '') throw new \Exception($baseErrorMsg."Table name cannot be empty");
+        if(empty(static::$columns)) throw new \Exception($baseErrorMsg."At least one column must be declared");
+        foreach(static::$columns as $column) {
+            if(!property_exists(static::class, $column)) throw new \Exception($baseErrorMsg."Declared column '{$column}' does not have a matching model property.");
+        }
+        return;
     }
 }
