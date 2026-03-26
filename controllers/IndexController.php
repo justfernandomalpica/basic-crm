@@ -12,10 +12,9 @@ class IndexController {
         $this->rEngine = $rEngine;
     }
 
-    public function index() : self {
+    public function index(){
         $view = new View("public/mainpage");
         $view->data(["title"=>"Pagina principal", "content"=>"2","Dato"=>"Algun dato cualquiera"]);
         $this->rEngine->render("master", $view);
-        return $this;
     }
 }
