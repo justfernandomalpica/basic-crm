@@ -3,6 +3,8 @@
 namespace Models;
 
 use Core\ActiveRecord;
+use Gabrola\EmailNormalizer\EmailNormalizer;
+use Gabrola\EmailNormalizer\EmailRules;
 
 class User extends ActiveRecord {
     protected static $table = 'users';
@@ -18,7 +20,7 @@ class User extends ActiveRecord {
     public function __construct(array $args) {
         $this->validate($args);
         $this->name = $args['name']; 
-        $this->email = $args['email']; 
+        $this->email = $this->normalizeEmail($args['email']); 
         $this->password = $args['password']; 
         $this->role = $args['role']; 
         $this->token = $args['token']; 
@@ -34,4 +36,10 @@ class User extends ActiveRecord {
             if($key === 'role' && !in_array($value,['admin','user'])) throw new \InvalidArgumentException($baseErrorMsg."Invalid user role");
         }
     }
+
+    private function normalizeEmail(string $email) : string {
+        $emailNmlzr = new EmailNormalizer(new EmailRules());
+        $normalizedEmail = $emailNmlzr->normalize($email);
+        return $normalizedEmail;
+    }    
 }

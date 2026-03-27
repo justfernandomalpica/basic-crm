@@ -4,8 +4,52 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "cc6284e6c88fc85428d4cd4d1fa36563",
+    "content-hash": "bf873994848f52fd1d9c012481b059ea",
     "packages": [
+        {
+            "name": "gabrola/email-normalizer",
+            "version": "2.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Gabrola/email-normalizer.git",
+                "reference": "3bde78e0de4d8428dc9b2a3966846590b3e79af1"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Gabrola/email-normalizer/zipball/3bde78e0de4d8428dc9b2a3966846590b3e79af1",
+                "reference": "3bde78e0de4d8428dc9b2a3966846590b3e79af1",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.6"
+            },
+            "require-dev": {
+                "php": ">=5.6",
+                "phpunit/phpunit": "9.1.4"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Gabrola\\EmailNormalizer\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Youssef Gaber",
+                    "email": "1728215+Gabrola@users.noreply.github.com"
+                }
+            ],
+            "description": "A library that will normalize email addresses for cases when different email addresses all point towards a single email account",
+            "support": {
+                "issues": "https://github.com/Gabrola/email-normalizer/issues",
+                "source": "https://github.com/Gabrola/email-normalizer/tree/master"
+            },
+            "time": "2020-06-05T19:14:33+00:00"
+        },
         {
             "name": "graham-campbell/result-type",
             "version": "v1.1.4",
