@@ -1,5 +1,6 @@
 /config/.env
 /vendor/
+/node_modules/
 
 /.idea/
 /.vscode/

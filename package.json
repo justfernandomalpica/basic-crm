@@ -1,0 +1,27 @@
+{
+  "name": "mpktek-crm",
+  "version": "1.0.0",
+  "description": "Basic CRM for personal porpouse",
+  "homepage": "https://github.com/justfernandomalpica/basic-crm#readme",
+  "bugs": {
+    "url": "https://github.com/justfernandomalpica/basic-crm/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/justfernandomalpica/basic-crm.git"
+  },
+  "license": "ISC",
+  "author": "Fernando De Los Santos Malpica <fernando_santosmalpica@outlook.com>",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo Hello World from package.json",
+    "dev": "gulp dev"
+  },
+  "devDependencies": {
+    "gulp": "^5.0.1",
+    "gulp-sass": "^6.0.1",
+    "gulp-sourcemaps": "^3.0.0",
+    "sass": "^1.98.0"
+  }
+}
