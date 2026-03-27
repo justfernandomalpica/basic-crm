@@ -16,12 +16,15 @@
   "main": "index.js",
   "scripts": {
     "test": "echo Hello World from package.json",
-    "dev": "gulp dev"
+    "dev": "gulp dev",
+    "build": "gulp build"
   },
   "devDependencies": {
+    "esbuild": "^0.27.4",
     "gulp": "^5.0.1",
+    "gulp-esbuild": "^0.14.1",
     "gulp-sass": "^6.0.1",
-    "gulp-sourcemaps": "^3.0.0",
+    "gulp-sourcemaps": "^2.6.5",
     "sass": "^1.98.0"
   }
 }
