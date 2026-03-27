@@ -16,36 +16,52 @@ const paths = {
     watch: "./src/js/**/*.js",
     dest: "./public/build/js",
     bundleName: "bundle.min.js",
+    devName: "bundle.js",
   },
 };
 
-function buidlStyles() {
+function buildStyles(isProduction) {
   return src(paths.styles.entry)
     .pipe(
       sass({
-        style: "compressed", // "compressed" or "expanded"
+        style: isProduction ? "compressed" : "expanded", // "compressed" or "expanded"
       }).on("error", sass.logError),
     )
     .pipe(dest(paths.styles.dest));
 }
 
-async function buildScripts() {
+function buildScripts(isProduction) {
   return src(paths.scripts.entry)
     .pipe(
       esbuild({
-        outfile: paths.scripts.bundleName,
+        outfile: isProduction
+          ? paths.scripts.bundleName
+          : paths.scripts.devName,
         bundle: true,
-        minify: true,
+        minify: isProduction,
         platform: "browser",
       }),
     )
     .pipe(dest(paths.scripts.dest));
 }
 
-function watcher() {
-  watch(paths.styles.watch, buidlStyles);
-  watch(paths.scripts.watch, buildScripts);
+function buildStylesDev() {
+  return buildStyles(false);
+}
+function buildStylesProd() {
+  return buildStyles(true);
+}
+function buildScriptsDev() {
+  return buildScripts(false);
+}
+function buildScriptsProd() {
+  return buildScripts(true);
 }
 
-export const build = parallel(buidlStyles, buildScripts);
-export const dev = series(build, watcher);
+function watcher() {
+  watch(paths.styles.watch, buildStylesDev);
+  watch(paths.scripts.watch, buildScriptsDev);
+}
+
+export const build = parallel(buildStylesProd, buildScriptsProd);
+export const dev = series(parallel(buildStylesDev, buildScriptsDev), watcher);
