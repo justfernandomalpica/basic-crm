@@ -4,6 +4,7 @@ namespace Controllers;
 
 use Core\Rendering\RenderEngine;
 use Core\Rendering\View;
+use Models\User;
 
 class IndexController {
     private RenderEngine $rEngine;

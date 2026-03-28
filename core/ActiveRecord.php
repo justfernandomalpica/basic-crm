@@ -8,6 +8,7 @@ class ActiveRecord {
     protected static string $table = '';
     protected static array $columns = [];
     protected ?int $id = null;
+    protected array $errors = [];
 
     // Entablish database instance
     public static function setDB(\mysqli $database) : void { self::$db = $database; }
@@ -139,6 +140,22 @@ class ActiveRecord {
         $this->id = null;
         return $result;
     }
+
+    public function hasErrors() : bool {
+        return !empty($this->errors);
+    }
+
+    public function getErrors() : array {
+        $errors = $this->errors;
+        $this->errors = [];
+        return $errors;
+    }
+
+    protected function setError(string $head, string $body) : void {
+        if($head === '' || $body === '') throw new \InvalidArgumentException("A model error cannot be empty");
+        $this->errors[$head][] = $body;
+    }
+
 
     private function getAttributes() : array {
         $attrs = [];
