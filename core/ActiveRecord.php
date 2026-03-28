@@ -147,8 +147,16 @@ class ActiveRecord {
 
     public function getErrors() : array {
         $errors = $this->errors;
-        $this->errors = [];
         return $errors;
+    }
+
+    public function getErrorsByHead(string $head) : array {
+        if(trim($head) === '') throw new \InvalidArgumentException("Empty head provided. cannot resolve");
+        return $this->errors[$head];
+    }
+
+    public function getId() : int {
+        return $this->id;
     }
 
     protected function setError(string $head, string $body) : void {
