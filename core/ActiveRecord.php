@@ -151,7 +151,12 @@ class ActiveRecord {
     }
 
     public function getErrorsByHead(string $head) : array {
+        if(empty($this->errors)) return [];
+
+        $head = trim($head);
         if(trim($head) === '') throw new \InvalidArgumentException("Empty head provided. cannot resolve");
+        if(!in_array($head,array_keys($this->errors))) return [];
+
         return $this->errors[$head];
     }
 
