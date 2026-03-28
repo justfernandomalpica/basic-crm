@@ -26,7 +26,7 @@ class User extends ActiveRecord {
             $this->setError($errHead, "El nombre es obligatorio");
             return $this;
         }
-        if(preg_match('/[a-zA-Z0-9_]/', $name) === 1) $this->setError($errHead, "El nombre no debe contener caracteres inválidos");
+        if(preg_match('[^a-zA-Z_\s]', $name) === 1) $this->setError($errHead, "El nombre no debe contener caracteres inválidos");
         if(empty($this->getErrorsByHead($errHead))) $this->name = $name;
         return $this;
     }
@@ -53,7 +53,7 @@ class User extends ActiveRecord {
             $this->setError($errHead,"La contraseña es obligatoria");
             return $this;
         }
-        
+
         if(preg_match('/[A-Z]/', $password) === 0) $this->setError($errHead, "La contraseña debe contener al menos una mayuscula");
         if(preg_match('/[0-9]/', $password) === 0) $this->setError($errHead,"La contraseña debe contener al menos un numero");
         if(preg_match('/[^a-zA-Z0-9_]/', $password) === 0) $this->setError($errHead, "La contraseña debe contener al menos un caracter especial");
