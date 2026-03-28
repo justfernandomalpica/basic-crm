@@ -58,6 +58,7 @@ function buildScriptsProd() {
 function watcher() {
   watch(paths.styles.watch, buildStylesDev);
   watch(paths.scripts.watch, buildScriptsDev);
+  watch(paths.statics.vendor, buildStatics);
 }
 
 function buildStatics() {
