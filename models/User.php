@@ -36,12 +36,17 @@ class User extends ActiveRecord {
     public function normalizeEmail() : string {
         $emailNmlzr = new EmailNormalizer(new EmailRules());
         $normalizedEmail = $emailNmlzr->normalize($this->email);
-        return $normalizedEmail;
-    }    
+        $this->email = $normalizedEmail;
+        return $this->email;
+    }
+    public function emailValidation() :void {
+        
+    }
 
     public function passHash(string $passPlain) : string {
         $hash = password_hash($passPlain, PASSWORD_BCRYPT);
-        return $hash;
+        $this->password = $hash;
+        return $this->password;
     }
 
     public function passVerify(string $password) : bool {
@@ -49,9 +54,9 @@ class User extends ActiveRecord {
         return $result;
     }
 
-    public function passwordValidation($password) {
+    public function passwordValidation(string $password) : void {
         $password = trim($password);
-        if(preg_match('/[A-Z]/', $password) === 1) $this->setError("Contraseña", "La contraseña debe contener al menos una mayuscula");
+        if(preg_match('/[A-Z]/', $password) === 0) $this->setError("Contraseña", "La contraseña debe contener al menos una mayuscula");
         if(preg_match('/[^a-zA-Z0-9_]/', $password) === 0) $this->setError("Contraseña", "La contraseña debe contener al menos un caracter especial");
         if(strlen($password) < 8) $this->setError("Contraseña", "La contraseña debe contener minimo 8 caracteres");
     }

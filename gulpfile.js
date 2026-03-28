@@ -1,7 +1,7 @@
 import { dest, src, series, parallel, watch } from "gulp";
 import * as dartSass from "sass";
 import gulpSass from "gulp-sass";
-import esbuild from "gulp-esbuild";
+import * as esbuild from "esbuild";
 
 const sass = gulpSass(dartSass);
 
@@ -16,7 +16,10 @@ const paths = {
     watch: "./src/js/**/*.js",
     dest: "./public/build/js",
     bundleName: "bundle.min.js",
-    devName: "bundle.js",
+  },
+  statics: {
+    vendor: "./src/js/vendor/**/*.js",
+    dest: "./public/build/statics",
   },
 };
 
@@ -30,19 +33,13 @@ function buildStyles(isProduction) {
     .pipe(dest(paths.styles.dest));
 }
 
-function buildScripts(isProduction) {
-  return src(paths.scripts.entry)
-    .pipe(
-      esbuild({
-        outfile: isProduction
-          ? paths.scripts.bundleName
-          : paths.scripts.devName,
-        bundle: true,
-        minify: isProduction,
-        platform: "browser",
-      }),
-    )
-    .pipe(dest(paths.scripts.dest));
+async function buildScripts(isProduction) {
+  await esbuild.build({
+    entryPoints: [paths.scripts.entry],
+    bundle: true,
+    minify: isProduction,
+    outfile: `${paths.scripts.dest}/${paths.scripts.bundleName}`,
+  });
 }
 
 function buildStylesDev() {
@@ -63,5 +60,14 @@ function watcher() {
   watch(paths.scripts.watch, buildScriptsDev);
 }
 
-export const build = parallel(buildStylesProd, buildScriptsProd);
-export const dev = series(parallel(buildStylesDev, buildScriptsDev), watcher);
+function buildStatics() {
+  return src(paths.statics.vendor).pipe(dest(paths.statics.dest));
+}
+
+export const common = buildStatics;
+
+export const build = parallel(buildStylesProd, buildScriptsProd, common);
+export const dev = series(
+  parallel(buildStylesDev, buildScriptsDev, common),
+  watcher,
+);
