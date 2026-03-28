@@ -99,6 +99,7 @@ class ActiveRecord {
     // Update
     public function sync(array $data) : static {
         self::initialValidation();
+        self::syncValidation();
         if(empty($data)) throw new \InvalidArgumentException("Cannot sync with empty data");
         if(array_is_list($data)) throw new \InvalidArgumentException("Data array must be associative");
         foreach ($data as $key => $value) {
@@ -234,14 +235,19 @@ class ActiveRecord {
         if(is_null(self::$db)) throw new \Exception($baseErrorMsg."An instance of \\mysqli must be setted before any operation");
         if(trim(static::$table) === '') throw new \Exception($baseErrorMsg."Table name cannot be empty");
         if(empty(static::$columns)) throw new \Exception($baseErrorMsg."At least one column must be declared");
-        if(empty(static::$columnsToSync)) throw new \Exception($baseErrorMsg."At least one column must be syncable");
         foreach(static::$columns as $column) {
             if(!property_exists(static::class, $column)) throw new \Exception($baseErrorMsg."Declared column '{$column}' does not have a matching model property.");   
         }
+        return;
+    }
+
+    private static function syncValidation() : void {
+        $baseErrorMsg = "Active Record error: ";
+        if(empty(static::$columnsToSync)) throw new \Exception($baseErrorMsg."At least one column must be syncable");
         foreach(static::$columnsToSync as $columnToSync) {
             if(!in_array($columnToSync, static::$columns)) throw new \Exception($baseErrorMsg."Only declared columns with matching attributes can be synced. [{$columnToSync}]");
             if(!method_exists(static::class, $columnToSync)) throw new \Exception($baseErrorMsg."Declared syncable column '{$columnToSync}' does not have a matching setter.");
-        } 
+        }
         return;
     }
 }
