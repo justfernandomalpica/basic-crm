@@ -7,6 +7,7 @@ class ActiveRecord {
     private static ?\mysqli $db = null;
     protected static string $table = '';
     protected static array $columns = [];
+    protected static array $columnsToSync = [];
     protected ?int $id = null;
     protected array $errors = [];
 
@@ -98,10 +99,12 @@ class ActiveRecord {
     // Update
     public function sync(array $data) : static {
         self::initialValidation();
-        foreach ($data as $key => $val) {
-            if(!in_array($key, static::$columns)) continue;
+        if(empty($data)) throw new \InvalidArgumentException("Cannot sync with empty data");
+        if(array_is_list($data)) throw new \InvalidArgumentException("Data array must be associative");
+        foreach ($data as $key => $value) {
+            if(!in_array($key, static::$columnsToSync)) continue;
             if($key==='id') continue;
-            $this->$key = $val;
+            call_user_func([$this,$key], $value);
         }
 
         return $this;
@@ -231,9 +234,14 @@ class ActiveRecord {
         if(is_null(self::$db)) throw new \Exception($baseErrorMsg."An instance of \\mysqli must be setted before any operation");
         if(trim(static::$table) === '') throw new \Exception($baseErrorMsg."Table name cannot be empty");
         if(empty(static::$columns)) throw new \Exception($baseErrorMsg."At least one column must be declared");
+        if(empty(static::$columnsToSync)) throw new \Exception($baseErrorMsg."At least one column must be syncable");
         foreach(static::$columns as $column) {
-            if(!property_exists(static::class, $column)) throw new \Exception($baseErrorMsg."Declared column '{$column}' does not have a matching model property.");
+            if(!property_exists(static::class, $column)) throw new \Exception($baseErrorMsg."Declared column '{$column}' does not have a matching model property.");   
         }
+        foreach(static::$columnsToSync as $columnToSync) {
+            if(!in_array($columnToSync, static::$columns)) throw new \Exception($baseErrorMsg."Only declared columns with matching attributes can be synced. [{$columnToSync}]");
+            if(!method_exists(static::class, $columnToSync)) throw new \Exception($baseErrorMsg."Declared syncable column '{$columnToSync}' does not have a matching setter.");
+        } 
         return;
     }
 }

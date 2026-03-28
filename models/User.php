@@ -9,6 +9,7 @@ use Gabrola\EmailNormalizer\EmailRules;
 class User extends ActiveRecord {
     protected static string $table = 'users';
     protected static array $columns = ['id', 'name','email','password','role','token','isConfirmed'];
+    protected static array $columnsToSync = ['name', 'email', 'password', 'role'];
     protected array $roles = ['admin', 'user'];
 
     public string $name = '';
